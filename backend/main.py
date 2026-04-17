@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session
 from backend import models, schemas, crud, security
 from backend.database import engine, SessionLocal
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Body  # 新增导入
+from pydantic import BaseModel
 
 """
 创建表，每次启动服务时，它都会检查数据库。
@@ -76,24 +78,6 @@ FastAPI 会自动把数据库对象列表转换成 JSON 列表。
 def list_cases(db: Session = Depends(get_db)):
     return crud.list_test_cases(db)
 
-# # ------------------------------
-# # 环境接口
-# # ------------------------------
-# @app.post("/env/add", response_model=schemas.EnvConfigOut)
-# def add_env(data: schemas.EnvConfigCreate, db: Session = Depends(get_db)):
-#     return crud.create_env_config(db, data)
-#
-# @app.get("/env/list")
-# def list_envs(db: Session = Depends(get_db)):
-#     return crud.list_env_configs(db)
-
-# ------------------------------
-# Vue Admin 登录必写接口（支持 JSON）
-# ------------------------------
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-
-
 # 定义接收 JSON 的模型
 class LoginForm(BaseModel):
     username: str
@@ -135,8 +119,8 @@ def add_project(data: schemas.ProjectCreate, db: Session = Depends(get_db)):
 def list_project(db: Session = Depends(get_db)):
     return crud.list_projects(db)
 
-@app.delete("/project/delete/{id}")
-def delete_project(id: int, db: Session = Depends(get_db)):
+@app.post("/project/delete")
+def delete_project(id: int = Body(..., embed=True), db: Session = Depends(get_db)):
     crud.delete_project(db, id)
     return {"code": 20000, "msg": "删除成功"}
 
@@ -149,7 +133,22 @@ def add_env(data: schemas.EnvConfigCreate, db: Session = Depends(get_db)):
 def list_env(db: Session = Depends(get_db)):
     return crud.list_env_configs(db)
 
-@app.delete("/env/delete/{id}")
-def delete_env(id: int, db: Session = Depends(get_db)):
+@app.post("/env/delete")
+def delete_env(id: int = Body(..., embed=True), db: Session = Depends(get_db)):
     crud.delete_env_config(db, id)
     return {"code": 20000, "msg": "删除成功"}
+
+
+# 添加路由检测端点
+@app.get("/debug/routes")
+async def debug_routes():
+    return {
+        "routes": [
+            {
+                "path": route.path,
+                "name": route.name,
+                "methods": list(route.methods)
+            }
+            for route in app.routes
+        ]
+    }

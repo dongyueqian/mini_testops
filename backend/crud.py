@@ -97,8 +97,15 @@ def create_project(db: Session, data: schemas.ProjectCreate):
     db.refresh(item)
     return item
 
+# 在 crud.py 中修改查询
 def list_projects(db: Session):
-    return db.query(models.Project).all()
+    return db.query(
+        models.Project.id,
+        models.Project.name,
+        models.Project.description,
+        models.Project.create_time
+    ).all()
+
 
 def delete_project(db: Session, id: int):
     item = db.query(models.Project).filter(models.Project.id == id).first()

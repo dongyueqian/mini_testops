@@ -60,5 +60,6 @@ class Project(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), unique=True, comment="项目名称")
     description = Column(Text, nullable=True, comment="项目描述")
+    owner = Column(String(64), nullable=True, comment="项目负责人")  # ← 新增字段
     create_time = Column(DateTime, default=datetime.now)
 
